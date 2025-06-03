@@ -1,0 +1,137 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.control.cell.*?>
+<?import javafx.scene.layout.*?>
+
+<BorderPane xmlns:fx="http://javafx.com/fxml"
+            fx:controller="com.example.pushnotifier.ui.MainController">
+
+    <!-- Barre supérieure avec titre -->
+    <top>
+        <HBox alignment="CENTER_LEFT" style="-fx-padding: 10; -fx-background-color: #e0e0e0;">
+            <Label text="Push Notification Manager" style="-fx-font-size: 18; -fx-font-weight: bold;" />
+        </HBox>
+    </top>
+
+    <!-- Centre : TabPane avec 2 onglets -->
+    <center>
+        <TabPane fx:id="tabPane" prefWidth="800" prefHeight="600">
+            <!-- Onglet Envoi -->
+            <Tab text="Envoyer" closable="false">
+                <VBox spacing="10" padding="10">
+                    <!-- 1. Bouton Charger CSV -->
+                    <HBox spacing="10">
+                        <Button text="Charger destinataires (CSV)" onAction="#handleLoadCsv"/>
+                        <Label text="(Format CSV : Name,Email,Phone)" style="-fx-font-style: italic;"/>
+                    </HBox>
+
+                    <!-- 2. TableView des destinataires -->
+                    <TableView fx:id="tableRecipients" prefHeight="200">
+                        <columns>
+                            <TableColumn text="Sélection" prefWidth="80">
+                                <cellValueFactory>
+                                    <PropertyValueFactory property="selected"/>
+                                </cellValueFactory>
+                                <cellFactory>
+                                    <CheckBoxTableCell forTableColumn=""/>
+                                </cellFactory>
+                                <editable>true</editable>
+                            </TableColumn>
+                            <TableColumn fx:id="colName" text="Nom" prefWidth="150">
+                                <cellValueFactory>
+                                    <PropertyValueFactory property="name"/>
+                                </cellValueFactory>
+                            </TableColumn>
+                            <TableColumn fx:id="colEmail" text="Email" prefWidth="200">
+                                <cellValueFactory>
+                                    <PropertyValueFactory property="email"/>
+                                </cellValueFactory>
+                            </TableColumn>
+                            <TableColumn fx:id="colPhone" text="Téléphone" prefWidth="150">
+                                <cellValueFactory>
+                                    <PropertyValueFactory property="phone"/>
+                                </cellValueFactory>
+                            </TableColumn>
+                        </columns>
+                    </TableView>
+
+                    <!-- 3. Zone de saisie du message -->
+                    <Label text="Message (vous pouvez utiliser {name} pour injecter le prénom) :"/>
+                    <TextArea fx:id="txtMessage" promptText="Tapez votre message ici..." prefRowCount="5" />
+
+                    <!-- 4. Choix du canal et du fournisseur SMS -->
+                    <HBox spacing="20" alignment="CENTER_LEFT">
+                        <VBox spacing="5">
+                            <Label text="Canal d’envoi :" />
+                            <ComboBox fx:id="comboChannel" prefWidth="120">
+                                <items>
+                                    <FXCollections fx:factory="observableArrayList">
+                                        <String>EMAIL</String>
+                                        <String>SMS</String>
+                                        <String>EMAIL+SMS</String>
+                                    </FXCollections>
+                                </items>
+                            </ComboBox>
+                        </VBox>
+                        <VBox spacing="5">
+                            <Label text="Fournisseur SMS (si SMS) :" />
+                            <ComboBox fx:id="comboSmsProvider" prefWidth="150" disable="true">
+                                <items>
+                                    <FXCollections fx:factory="observableArrayList">
+                                        <String>OrangeCameroon</String>
+                                        <String>MTNCameroon</String>
+                                    </FXCollections>
+                                </items>
+                            </ComboBox>
+                        </VBox>
+                    </HBox>
+
+                    <!-- 5. Bouton Envoyer -->
+                    <HBox alignment="CENTER_RIGHT">
+                        <Button text="Envoyer" onAction="#handleSendNotifications" style="-fx-font-size: 14;"/>
+                    </HBox>
+                </VBox>
+            </Tab>
+
+            <!-- Onglet Historique -->
+            <Tab text="Historique" closable="false">
+                <VBox spacing="10" padding="10">
+                    <Button text="Rafraîchir historique" onAction="#handleRefreshHistory"/>
+                    <TableView fx:id="tableHistory" prefHeight="400">
+                        <columns>
+                            <TableColumn fx:id="colTime" text="Date/Heure" prefWidth="180">
+                                <cellValueFactory>
+                                    <PropertyValueFactory property="sendTime"/>
+                                </cellValueFactory>
+                            </TableColumn>
+                            <TableColumn fx:id="colChan" text="Canal" prefWidth="100">
+                                <cellValueFactory>
+                                    <PropertyValueFactory property="channel"/>
+                                </cellValueFactory>
+                            </TableColumn>
+                            <TableColumn fx:id="colRecip" text="Destinataire" prefWidth="200">
+                                <cellValueFactory>
+                                    <PropertyValueFactory property="recipient"/>
+                                </cellValueFactory>
+                            </TableColumn>
+                            <TableColumn fx:id="colSuccess" text="Succès" prefWidth="80">
+                                <cellValueFactory>
+                                    <PropertyValueFactory property="success"/>
+                                </cellValueFactory>
+                            </TableColumn>
+                            <TableColumn fx:id="colError" text="Erreur" prefWidth="240">
+                                <cellValueFactory>
+                                    <PropertyValueFactory property="errorMsg"/>
+                                </cellValueFactory>
+                            </TableColumn>
+                        </columns>
+                    </TableView>
+                </VBox>
+            </Tab>
+        </TabPane>
+    </center>
+
+</BorderPane>
+
