@@ -1,0 +1,229 @@
+Resources
+OAuth M2M in a nutshell
+Authentication
+Oauth2
+Access token
+OAuth M2M in a nutshell
+Published: October 7, 2024
+
+  
+Before you can use Orange APIs, there are various steps that are needed to get you started on the Orange Developer portal. These steps are described in: How to start with Orange Developer.
+
+The OAuth M2M in a nutshell guide presents the OAuth 2.0 Machine-To-Machine authentication process in a simplified way. It dynamically provides various sample codes. The stepper below shows the various steps, which are clickable:
+
+Before starting
+Request the OAuth access token
+Access the protected resources
+Step 1 - Before starting
+At the end of the registration process (step 4 of the How to start with Orange Developer – Orange Developer), you are provided with a client_id, a client_secret and the HTTP Authorization header. They are available in your client space MyApps > tab Credentials and are applicable to one application.
+
+Be cautious to the following notions on Orange Developer:
+
+only one client space can be associated with one email address
+in this client space, you can have one or several applications
+with one application are associated:
+one or several APIs
+only one set of credentials
+The figure below illustrates the various calls and processes to obtain and use an access token:
+
+OAuth 2.0 M2M interactions
+OAuth2 2-legged Process
+Caution to the URL you use to retrieve your token. For more information, refer to the Introduction to the OAuth 2.0 protocol, paragraph API URL endpoints.
+
+Step 2 - Request the OAuth access token
+The access token is mandatory for API calls to access protected resources. To get this token, a POST request must be sent to the token endpoint as in the following example:
+
+Replace YourAuthorizationHeader by the authorization header provided in your MyApps client space.
+
+cURL
+PHP
+C#
+Kotlin
+Rust
+Javascript
+Java
+NodeJS
+Python
+Example HttpClient
+import java.io.IOException;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpRequest.BodyPublishers;
+import java.net.http.HttpResponse;
+
+HttpClient client = HttpClient.newHttpClient();
+
+HttpRequest request = HttpRequest.newBuilder()
+  .uri(URI.create("https://api.orange.com/oauth/v3/token"))
+  .POST(BodyPublishers.ofString("grant_type=client_credentials"))
+  .setHeader("Authorization", "Basic NktSSHljksdj7P...Jjndb6UdnlrT2lOaA==")
+  .setHeader("Content-Type", "application/x-www-form-urlencoded")
+  .setHeader("Accept", "application/json")
+  .build();
+
+HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+Example HttpURLConnection
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStreamWriter;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.util.Scanner;
+
+class Main {
+  public static void main(String[] args) throws IOException {
+     URL url = new URL("https://api.orange.com/oauth/v3/token");
+     HttpURLConnection httpConn = (HttpURLConnection) url.openConnection();
+     httpConn.setRequestMethod("POST");
+
+     httpConn.setRequestProperty("Authorization", "Basic NktSSHljksdj7P...Jjndb6UdnlrT2lOaA==");
+     httpConn.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
+     httpConn.setRequestProperty("Accept", "application/json");
+
+     httpConn.setDoOutput(true);
+     OutputStreamWriter writer = new OutputStreamWriter(httpConn.getOutputStream());
+     writer.write("grant_type=client_credentials");
+     writer.flush();
+     writer.close();
+     httpConn.getOutputStream().close();
+
+     InputStream responseStream = httpConn.getResponseCode() / 100 == 2
+        ? httpConn.getInputStream()
+        : httpConn.getErrorStream();
+     Scanner s = new Scanner(responseStream).useDelimiter("\\A");
+     String response = s.hasNext() ? s.next() : "";
+     System.out.println(response);
+  }
+}
+Example jsop
+import java.io.IOException;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpRequest.BodyPublishers;
+import java.net.http.HttpResponse;
+
+HttpClient client = HttpClient.newHttpClient();
+
+HttpRequest request = HttpRequest.newBuilder()
+  .uri(URI.create("https://api.orange.com/oauth/v3/token"))
+  .POST(BodyPublishers.ofString("grant_type=client_credentials"))
+  .setHeader("Authorization", "Basic NktSSHljksdj7P...Jjndb6UdnlrT2lOaA==")
+  .setHeader("Content-Type", "application/x-www-form-urlencoded")
+  .setHeader("Accept", "application/json")
+  .build();
+
+HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+Example okHttp
+import java.io.IOException;
+import okhttp3.FormBody;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.RequestBody;
+import okhttp3.Response;
+
+OkHttpClient client = new OkHttpClient();
+
+RequestBody formBody = new FormBody.Builder()
+  .add("grant_type", "client_credentials")
+  .build();
+
+Request request = new Request.Builder()
+  .url("https://api.orange.com/oauth/v3/token")
+  .post(formBody)
+  .header("Authorization", "Basic NktSSHljksdj7P...Jjndb6UdnlrT2lOaA==")
+  .header("Content-Type", "application/x-www-form-urlencoded")
+  .header("Accept", "application/json")
+  .build();
+
+try (Response response = client.newCall(request).execute()) {
+  if (!response.isSuccessful()) throw new IOException("Unexpected code " + response);
+  response.body().string();
+}
+Following this request, you will receive a response, which can be either successful or in error:
+
+Example of a successful response:
+HTTP/1.1 200 OK
+Content-Type: application/json
+{
+   "token_type": "Bearer",
+   "access_token": "i6m2iIcY0SodWSe...L3ojAXXrH",
+   "expires_in": 3600
+}
+Example of an error response:
+HTTP/1.1 401 Unauthorized
+Content-Type: application/json
+WWW-Authenticate : Basic realm="Authorization Required"
+{
+   "error": "invalid_client",
+   "error_description": "The requested service needs credentials, but the ones provided were invalid."
+}
+When you perform POST requests with curl or wget, parameters are specified as application/x-www-form-urlencoded using the -d flag.
+Token requests are limited to 50 requests per minute. When the rate limit is exceeded, you will receive a 429 error.
+A token is valid for 60 minutes. Do not make more token requests than one per hour for an application.
+Header Accept: application/json is now required. When it is omitted you will receive a 406 error.
+The Authorization Header is now forbidden when providing the client_id/client_secret in the body. A 400 error “Duplicate credentials” is generated.
+Step 3 - Access the protected resources using the OAuth access token
+To call our API, the access token is mandatory. The bearer token must be provided in the request using HTTP Authorization header. For example:
+
+cURL
+PHP
+C#
+Kotlin
+Rust
+Javascript
+Java
+NodeJS
+Python
+curl -X GET \
+-H "Authorization: Bearer i6m2iIcY0SodWSe...L3ojAXXrH" \
+https://api.orange.com/poi/v1/shops?postalCode=35000
+If your client application attempts to use an expired or revoked access token, an invalid token error is returned.
+
+Your application is now ready to consume the Orange API’s resources protected by the OAuth 2.0 M2M protocol.
+
+Learn more
+provides you with a step-by-step guide with screen shots to help you get started on Orange Developer
+
+provides you with a complete list of possible errors on Orange Developer APIs and how to troubleshoot them
+
+tool that automatically generates code in various formats
+
+Recommended for you
+Resource
+OAuth U2M in a nutshell
+May 27, 2024
+
+Discover how to access protected Orange APIs resources using OAuth U2M (i.e. client_credentials grant type), with sample codes
+
+Resource
+How to start with Orange Developer
+March 23, 2023
+
+Orange Developer features a catalog of APIs as well as an embedded and streamlined API subscription and account creation process. Learn how to get started on the Orange Developer portal.
+
+Resource
+Introduction to OAuth 2.0 protocol
+September 12, 2016
+
+OAuth 2.0 defines a protocol for securing application access to protected resources, which are accessed through REST APIs. With this guide, discover an overview of OAuth 2.0 roles, authorization grant types and M2M and U2M flows.
+
+Find us on
+Products
+Network APIs
+All APIs
+Verticals
+Blog
+Resources
+Support
+How to start guide
+Frequently asked questions
+Contact us
+About us
+Orange APIs General Terms
+© Orange 2025
+Cookie settings
+Terms and conditions
+Privacy notice
+Accessibility     utilisons la methode approprié pour java
